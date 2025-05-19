@@ -496,3 +496,253 @@
     </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玩家积分管理系统</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .player-list {
+            margin-top: 30px;
+        }
+        .player-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .player-card h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .player-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .player-info p {
+            margin: 5px 0;
+        }
+        .actions {
+            margin-top: 10px;
+            text-align: right;
+        }
+        .actions button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        .edit-btn {
+            background-color: #2196F3;
+        }
+        .edit-btn:hover {
+            background-color: #0b7dda;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        .delete-btn:hover {
+            background-color: #da190b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>玩家积分管理系统</h1>
+        
+        <div class="add-player">
+            <h2>添加/编辑玩家</h2>
+            <form id="playerForm">
+                <input type="hidden" id="editIndex" value="-1">
+                <div class="form-group">
+                    <label for="playerId">ID：</label>
+                    <input type="text" id="playerId" required>
+                </div>
+                <div class="form-group">
+                    <label for="nickname">昵称：</label>
+                    <input type="text" id="nickname" required>
+                </div>
+                <div class="form-group">
+                    <label for="recharge">充值：</label>
+                    <input type="number" id="recharge" min="0" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="frozen">冻结积分：</label>
+                    <input type="number" id="frozen" min="0" value="0" required>
+                </div>
+                <button type="submit">保存</button>
+            </form>
+        </div>
+        
+        <div class="player-list">
+            <h2>玩家列表</h2>
+            <div id="playersContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // 存储玩家数据的数组
+        let players = [];
+        
+        // DOM加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载本地存储的数据
+            loadPlayers();
+            
+            // 表单提交事件
+            document.getElementById('playerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                savePlayer();
+            });
+        });
+        
+        // 加载玩家数据
+        function loadPlayers() {
+            const savedPlayers = localStorage.getItem('players');
+            if (savedPlayers) {
+                players = JSON.parse(savedPlayers);
+                renderPlayers();
+            }
+        }
+        
+        // 保存玩家数据
+        function savePlayer() {
+            const editIndex = parseInt(document.getElementById('editIndex').value);
+            const player = {
+                id: document.getElementById('playerId').value,
+                nickname: document.getElementById('nickname').value,
+                recharge: parseFloat(document.getElementById('recharge').value),
+                frozen: parseFloat(document.getElementById('frozen').value)
+            };
+            
+            if (editIndex >= 0) {
+                // 更新现有玩家
+                players[editIndex] = player;
+            } else {
+                // 添加新玩家
+                players.push(player);
+            }
+            
+            // 保存到本地存储
+            localStorage.setItem('players', JSON.stringify(players));
+            
+            // 重新渲染列表
+            renderPlayers();
+            
+            // 重置表单
+            resetForm();
+        }
+        
+        // 渲染玩家列表
+        function renderPlayers() {
+            const container = document.getElementById('playersContainer');
+            container.innerHTML = '';
+            
+            if (players.length === 0) {
+                container.innerHTML = '<p>暂无玩家数据</p>';
+                return;
+            }
+            
+            players.forEach((player, index) => {
+                const remaining = player.recharge - player.frozen;
+                
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.innerHTML = `
+                    <h3>${player.nickname} (ID: ${player.id})</h3>
+                    <div class="player-info">
+                        <p><strong>ID：</strong> ${player.id}</p>
+                        <p><strong>昵称：</strong> ${player.nickname}</p>
+                        <p><strong>充值：</strong> ${player.recharge.toFixed(2)}</p>
+                        <p><strong>冻结积分：</strong> ${player.frozen.toFixed(2)}</p>
+                        <p><strong>剩余积分：</strong> <span style="color: ${remaining >= 0 ? '#4CAF50' : '#f44336'}">${remaining.toFixed(2)}</span></p>
+                    </div>
+                    <div class="actions">
+                        <button class="edit-btn" onclick="editPlayer(${index})">编辑</button>
+                        <button class="delete-btn" onclick="deletePlayer(${index})">删除</button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+        
+        // 编辑玩家
+        function editPlayer(index) {
+            const player = players[index];
+            document.getElementById('editIndex').value = index;
+            document.getElementById('playerId').value = player.id;
+            document.getElementById('nickname').value = player.nickname;
+            document.getElementById('recharge').value = player.recharge;
+            document.getElementById('frozen').value = player.frozen;
+            
+            // 滚动到表单
+            document.querySelector('.add-player').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 删除玩家
+        function deletePlayer(index) {
+            if (confirm('确定要删除这个玩家吗？')) {
+                players.splice(index, 1);
+                localStorage.setItem('players', JSON.stringify(players));
+                renderPlayers();
+            }
+        }
+        
+        // 重置表单
+        function resetForm() {
+            document.getElementById('editIndex').value = '-1';
+            document.getElementById('playerForm').reset();
+        }
+    </script>
+</body>
+</html>

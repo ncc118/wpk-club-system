@@ -1523,3 +1523,354 @@
         openModal('gameModal');
     }
 </script>
+<!-- 在之前代码的基础上，添加以下内容 -->
+
+<style>
+    /* 添加计时器相关样式 */
+    .timer-display {
+        font-size: 24px;
+        font-weight: bold;
+        color: #e74c3c;
+        text-align: center;
+        margin: 10px 0;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+    
+    .player-timer {
+        display: inline-block;
+        padding: 3px 8px;
+        background-color: #34495e;
+        color: white;
+        border-radius: 3px;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+    
+    .timer-controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 15px 0;
+    }
+    
+    .timer-low {
+        color: #e74c3c;
+        animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+</style>
+
+<!-- 在gameModal的modalGameContent中添加计时器控制部分 -->
+<div id="gameModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('gameModal')">&times;</span>
+        <h2 id="modalGameTitle">牌局详情</h2>
+        <div id="modalGameContent">
+            <!-- 原有牌局详情内容保持不变 -->
+            
+            <!-- 添加计时器部分 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>牌局计时器</h3>
+                </div>
+                <div class="card-body">
+                    <div class="timer-display" id="gameDuration">
+                        牌局已进行: 00:00:00
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn-primary" onclick="startGameTimer()">开始计时</button>
+                        <button class="btn-warning" onclick="pauseGameTimer()">暂停</button>
+                        <button class="btn-danger" onclick="resetGameTimer()">重置</button>
+                    </div>
+                    
+                    <h4>当前行动玩家</h4>
+                    <div id="currentPlayerDisplay" style="margin-bottom: 10px;">
+                        等待牌局开始...
+                    </div>
+                    <div class="timer-display" id="playerTimer">
+                        剩余时间: 00:00
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn-success" onclick="nextPlayer()">下一位玩家</button>
+                        <button class="btn-warning" onclick="addTimeToPlayer(10)">+10秒</button>
+                        <button class="btn-warning" onclick="addTimeToPlayer(30)">+30秒</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 原有玩家管理内容保持不变 -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // 添加计时器相关变量
+    let gameTimerInterval;
+    let playerTimerInterval;
+    let gameStartTime;
+    let gameDuration = 0;
+    let currentPlayerIndex = -1;
+    let currentPlayerTimeLeft;
+    let gameTimeBank; // 牌局设置的思考时间
+    
+    // 修改viewGameDetails函数，初始化计时器
+    function viewGameDetails(gameId) {
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        // 保存牌局设置的思考时间
+        gameTimeBank = game.timeBank;
+        
+        document.getElementById('modalGameTitle').textContent = `牌局详情 - ${game.name} (ID: ${game.id})`;
+        
+        let content = `
+            <div class="card">
+                <div class="card-header">
+                    <h3>${game.name}</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>游戏类型：</strong> ${game.type}</p>
+                    <p><strong>盲注级别：</strong> ${game.stakes}</p>
+                    <p><strong>买入金额：</strong> ${game.buyIn}</p>
+                    <p><strong>玩家数量：</strong> ${game.players?.length || 0}/${game.maxPlayers}</p>
+                    <p><strong>思考时间：</strong> ${game.timeBank}秒</p>
+                    <p><strong>前注：</strong> ${game.ante}</p>
+                    <p><strong>抽水比例：</strong> ${game.rake}%</p>
+                    <p><strong>牌局状态：</strong> ${getGameStatusText(game.status)}</p>
+                    <p><strong>创建时间：</strong> ${formatDate(game.createdAt)}</p>
+                    <p><strong>最后更新：</strong> ${formatDate(game.updatedAt)}</p>
+                </div>
+            </div>
+            
+            <!-- 计时器部分 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>牌局计时器</h3>
+                </div>
+                <div class="card-body">
+                    <div class="timer-display" id="gameDuration">
+                        牌局已进行: 00:00:00
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn-primary" onclick="startGameTimer()">开始计时</button>
+                        <button class="btn-warning" onclick="pauseGameTimer()">暂停</button>
+                        <button class="btn-danger" onclick="resetGameTimer()">重置</button>
+                    </div>
+                    
+                    <h4>当前行动玩家</h4>
+                    <div id="currentPlayerDisplay" style="margin-bottom: 10px;">
+                        等待牌局开始...
+                    </div>
+                    <div class="timer-display" id="playerTimer">
+                        剩余时间: ${formatTime(gameTimeBank)}
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn-success" onclick="nextPlayer()">下一位玩家</button>
+                        <button class="btn-warning" onclick="addTimeToPlayer(10)">+10秒</button>
+                        <button class="btn-warning" onclick="addTimeToPlayer(30)">+30秒</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 玩家管理部分 -->
+            <h3 style="margin-top: 20px;">玩家管理</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="addPlayerSelect">添加玩家：</label>
+                    <select id="addPlayerSelect">
+                        <option value="">选择玩家</option>
+                    </select>
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <button class="btn-success" onclick="addPlayerToGame()">添加到牌局</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>玩家ID</th>
+                            <th>昵称</th>
+                            <th>等级</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gamePlayersList">
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('modalGameContent').innerHTML = content;
+        
+        // 初始化玩家下拉框和列表
+        updateAddPlayerSelect(gameId);
+        updateGamePlayersList(gameId);
+        
+        // 初始化计时器
+        resetGameTimer();
+        
+        openModal('gameModal');
+    }
+    
+    // 格式化时间为HH:MM:SS
+    function formatTime(seconds) {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        
+        return [
+            hrs.toString().padStart(2, '0'),
+            mins.toString().padStart(2, '0'),
+            secs.toString().padStart(2, '0')
+        ].join(':');
+    }
+    
+    // 开始牌局计时
+    function startGameTimer() {
+        const gameId = getCurrentGameId();
+        if (!gameId) return;
+        
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        // 如果牌局状态不是进行中，更新状态
+        if (game.status !== 'active') {
+            game.status = 'active';
+            game.updatedAt = new Date().toISOString();
+            saveData();
+            renderGamesTable();
+        }
+        
+        // 开始牌局总计时
+        if (!gameTimerInterval) {
+            gameStartTime = new Date();
+            gameTimerInterval = setInterval(updateGameDuration, 1000);
+        }
+        
+        // 如果还没有当前玩家，开始第一个玩家
+        if (currentPlayerIndex === -1 && game.players.length > 0) {
+            nextPlayer();
+        }
+    }
+    
+    // 更新牌局持续时间显示
+    function updateGameDuration() {
+        const now = new Date();
+        const elapsed = Math.floor((now - gameStartTime) / 1000) + gameDuration;
+        
+        document.getElementById('gameDuration').textContent = 
+            `牌局已进行: ${formatTime(elapsed)}`;
+    }
+    
+    // 暂停计时器
+    function pauseGameTimer() {
+        if (gameTimerInterval) {
+            clearInterval(gameTimerInterval);
+            gameTimerInterval = null;
+            
+            // 计算已持续时间
+            const now = new Date();
+            gameDuration += Math.floor((now - gameStartTime) / 1000);
+        }
+        
+        if (playerTimerInterval) {
+            clearInterval(playerTimerInterval);
+            playerTimerInterval = null;
+        }
+    }
+    
+    // 重置计时器
+    function resetGameTimer() {
+        pauseGameTimer();
+        gameDuration = 0;
+        currentPlayerIndex = -1;
+        
+        document.getElementById('gameDuration').textContent = '牌局已进行: 00:00:00';
+        document.getElementById('playerTimer').textContent = `剩余时间: ${formatTime(gameTimeBank)}`;
+        document.getElementById('currentPlayerDisplay').textContent = '等待牌局开始...';
+    }
+    
+    // 切换到下一位玩家
+    function nextPlayer() {
+        const gameId = getCurrentGameId();
+        if (!gameId) return;
+        
+        const game = games.find(g => g.id === gameId);
+        if (!game || !game.players || game.players.length === 0) return;
+        
+        // 停止当前玩家计时
+        if (playerTimerInterval) {
+            clearInterval(playerTimerInterval);
+            playerTimerInterval = null;
+        }
+        
+        // 移动到下一位玩家
+        currentPlayerIndex = (currentPlayerIndex + 1) % game.players.length;
+        currentPlayerTimeLeft = gameTimeBank;
+        
+        // 更新显示
+        const playerId = game.players[currentPlayerIndex];
+        const player = players.find(p => p.id === playerId);
+        
+        if (player) {
+            document.getElementById('currentPlayerDisplay').innerHTML = `
+                当前行动: <strong>${player.nickname}</strong> 
+                <span class="player-timer">${player.level}</span>
+            `;
+        }
+        
+        document.getElementById('playerTimer').textContent = `剩余时间: ${formatTime(currentPlayerTimeLeft)}`;
+        document.getElementById('playerTimer').className = 'timer-display';
+        
+        // 开始新玩家计时
+        playerTimerInterval = setInterval(updatePlayerTimer, 1000);
+    }
+    
+    // 更新玩家计时器
+    function updatePlayerTimer() {
+        currentPlayerTimeLeft--;
+        
+        document.getElementById('playerTimer').textContent = `剩余时间: ${formatTime(currentPlayerTimeLeft)}`;
+        
+        // 时间不足10秒时显示警告
+        if (currentPlayerTimeLeft <= 10) {
+            document.getElementById('playerTimer').className = 'timer-display timer-low';
+        }
+        
+        // 时间用完自动切换到下一位玩家
+        if (currentPlayerTimeLeft <= 0) {
+            nextPlayer();
+        }
+    }
+    
+    // 为当前玩家增加时间
+    function addTimeToPlayer(seconds) {
+        if (currentPlayerIndex === -1) return;
+        
+        currentPlayerTimeLeft += seconds;
+        document.getElementById('playerTimer').textContent = `剩余时间: ${formatTime(currentPlayerTimeLeft)}`;
+        
+        // 如果添加时间后超过10秒，移除警告样式
+        if (currentPlayerTimeLeft > 10) {
+            document.getElementById('playerTimer').className = 'timer-display';
+        }
+    }
+    
+    // 获取当前牌局ID
+    function getCurrentGameId() {
+        const title = document.getElementById('modalGameTitle').textContent;
+        const match = title.match(/ID: (game_\w+)/);
+        return match ? match[1] : null;
+    }
+</script>

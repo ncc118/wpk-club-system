@@ -1,0 +1,19 @@
+{
+  "players": [
+    {
+      "id": "001",
+      "nickname": "玩家A",
+      "recharge": 1000,
+      "frozen": 200,
+      "balance": 800,
+      "current_table": "桌1"
+    }
+  ],
+  "tables": [
+    {
+      "id": "桌1",
+      "players": ["001"],
+      "scores": {"001": 50}
+    }
+  ]
+}

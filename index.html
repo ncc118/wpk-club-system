@@ -149,22 +149,11 @@
         
         // 加载玩家数据
         function loadPlayers() {
-            // 从GitHub加载数据
-            fetch('https://raw.githubusercontent.com/[你的用户名]/wpk-score-system/main/players.json')
-                .then(response => response.json())
-                .then(data => {
-                    players = data;
-                    renderPlayers();
-                })
-                .catch(error => {
-                    console.error('加载玩家数据失败:', error);
-                    // 尝试从本地存储加载
-                    const savedPlayers = localStorage.getItem('players');
-                    if (savedPlayers) {
-                        players = JSON.parse(savedPlayers);
-                        renderPlayers();
-                    }
-                });
+            const savedPlayers = localStorage.getItem('players');
+            if (savedPlayers) {
+                players = JSON.parse(savedPlayers);
+                renderPlayers();
+            }
         }
         
         // 保存玩家数据
@@ -185,91 +174,14 @@
                 players.push(player);
             }
             
-            // 保存到GitHub
-            saveToGitHub(players);
+            // 保存到本地存储
+            localStorage.setItem('players', JSON.stringify(players));
+            
+            // 重新渲染列表
+            renderPlayers();
             
             // 重置表单
             resetForm();
-        }
-        
-        // 保存数据到GitHub
-        function saveToGitHub(playersData) {
-            const token = prompt("请输入你的GitHub个人访问令牌(PAT)");
-            if (!token) return;
-            
-            // 1. 获取当前players.json内容（如果有）
-            let sha = null;
-            fetch('https://api.github.com/repos/[你的用户名]/wpk-score-system/contents/players.json', {
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                sha = data.sha;
-                // 2. 更新文件
-                return fetch('https://api.github.com/repos/[你的用户名]/wpk-score-system/contents/players.json', {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: '更新玩家数据',
-                        content: btoa(JSON.stringify(playersData)),
-                        sha: sha
-                    })
-                });
-            })
-            .catch(() => {
-                // 文件不存在，直接创建
-                return fetch('https://api.github.com/repos/[你的用户名]/wpk-score-system/contents/players.json', {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: '创建玩家数据',
-                        content: btoa(JSON.stringify(playersData))
-                    })
-                });
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('玩家数据保存成功！');
-                    renderPlayers();
-                    triggerDeploy(token);
-                } else {
-                    alert('保存失败，请检查令牌是否正确');
-                }
-            })
-            .catch(error => {
-                alert('保存出错: ' + error.message);
-                // 保存到本地存储作为备份
-                localStorage.setItem('players', JSON.stringify(playersData));
-                players = playersData;
-                renderPlayers();
-            });
-        }
-        
-        // 触发GitHub Actions部署
-        function triggerDeploy(token) {
-            fetch('https://api.github.com/repos/[你的用户名]/wpk-score-system/dispatches', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    event_type: 'update_players'
-                })
-            })
-            .catch(e => console.log('触发部署失败:', e));
         }
         
         // 渲染玩家列表
@@ -323,7 +235,8 @@
         function deletePlayer(index) {
             if (confirm('确定要删除这个玩家吗？')) {
                 players.splice(index, 1);
-                saveToGitHub(players);
+                localStorage.setItem('players', JSON.stringify(players));
+                renderPlayers();
             }
         }
         

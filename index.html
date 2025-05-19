@@ -1298,3 +1298,228 @@
     </script>
 </body>
 </html>
+<!-- 只展示修改的部分，完整代码请保留之前的所有内容 -->
+
+<!-- 在gameModal的modalGameContent中添加玩家管理部分 -->
+<div id="gameModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('gameModal')">&times;</span>
+        <h2 id="modalGameTitle">牌局详情</h2>
+        <div id="modalGameContent">
+            <!-- 原有牌局详情内容保持不变 -->
+            
+            <h3 style="margin-top: 20px;">玩家管理</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="addPlayerSelect">添加玩家：</label>
+                    <select id="addPlayerSelect">
+                        <option value="">选择玩家</option>
+                        <!-- 玩家选项将通过JS动态生成 -->
+                    </select>
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <button class="btn-success" onclick="addPlayerToGame()">添加到牌局</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>玩家ID</th>
+                            <th>昵称</th>
+                            <th>等级</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gamePlayersList">
+                        <!-- 牌局玩家列表将在这里动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 添加新函数：更新牌局玩家列表
+    function updateGamePlayersList(gameId) {
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        const tbody = document.getElementById('gamePlayersList');
+        tbody.innerHTML = '';
+        
+        // 确保players数组存在
+        game.players = game.players || [];
+        
+        if (game.players.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">暂无玩家</td></tr>';
+            return;
+        }
+        
+        game.players.forEach(playerId => {
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${player.id}</td>
+                <td>${player.nickname}</td>
+                <td><span class="chip">${player.level}</span></td>
+                <td>${getStatusText(player.status)}</td>
+                <td class="actions">
+                    <button class="btn-danger btn-sm" onclick="removePlayerFromGame('${gameId}', '${playerId}')">移除</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // 添加新函数：更新添加玩家下拉框
+    function updateAddPlayerSelect(gameId) {
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        const select = document.getElementById('addPlayerSelect');
+        select.innerHTML = '<option value="">选择玩家</option>';
+        
+        // 获取尚未加入该牌局的活跃玩家
+        const availablePlayers = players.filter(player => 
+            player.status === 'active' && 
+            !game.players.includes(player.id)
+        );
+        
+        availablePlayers.forEach(player => {
+            const option = document.createElement('option');
+            option.value = player.id;
+            option.textContent = `${player.nickname} (${player.id})`;
+            select.appendChild(option);
+        });
+    }
+    
+    // 添加新函数：添加玩家到牌局
+    function addPlayerToGame() {
+        const select = document.getElementById('addPlayerSelect');
+        const playerId = select.value;
+        if (!playerId) return;
+        
+        const gameId = document.getElementById('gameEditId').value || 
+                      document.querySelector('#modalGameTitle').textContent.match(/ID: (game_\w+)/)?.[1];
+        
+        if (!gameId) return;
+        
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        // 确保players数组存在
+        game.players = game.players || [];
+        
+        // 检查玩家是否已在牌局中
+        if (!game.players.includes(playerId)) {
+            game.players.push(playerId);
+            game.updatedAt = new Date().toISOString();
+            
+            // 保存数据
+            saveData();
+            
+            // 更新UI
+            updateGamePlayersList(gameId);
+            updateAddPlayerSelect(gameId);
+            renderGamesTable();
+            updateDashboard();
+            
+            alert('玩家已成功添加到牌局');
+        }
+    }
+    
+    // 添加新函数：从牌局移除玩家
+    function removePlayerFromGame(gameId, playerId) {
+        if (!confirm(`确定要将玩家 ${playerId} 从牌局中移除吗？`)) return;
+        
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        game.players = game.players.filter(id => id !== playerId);
+        game.updatedAt = new Date().toISOString();
+        
+        // 保存数据
+        saveData();
+        
+        // 更新UI
+        updateGamePlayersList(gameId);
+        updateAddPlayerSelect(gameId);
+        renderGamesTable();
+        updateDashboard();
+        
+        alert('玩家已从牌局中移除');
+    }
+    
+    // 修改viewGameDetails函数，添加玩家管理功能
+    function viewGameDetails(gameId) {
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        document.getElementById('modalGameTitle').textContent = `牌局详情 - ${game.name} (ID: ${game.id})`;
+        
+        let content = `
+            <div class="card">
+                <div class="card-header">
+                    <h3>${game.name}</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>游戏类型：</strong> ${game.type}</p>
+                    <p><strong>盲注级别：</strong> ${game.stakes}</p>
+                    <p><strong>买入金额：</strong> ${game.buyIn}</p>
+                    <p><strong>玩家数量：</strong> ${game.players?.length || 0}/${game.maxPlayers}</p>
+                    <p><strong>思考时间：</strong> ${game.timeBank}秒</p>
+                    <p><strong>前注：</strong> ${game.ante}</p>
+                    <p><strong>抽水比例：</strong> ${game.rake}%</p>
+                    <p><strong>牌局状态：</strong> ${getGameStatusText(game.status)}</p>
+                    <p><strong>创建时间：</strong> ${formatDate(game.createdAt)}</p>
+                    <p><strong>最后更新：</strong> ${formatDate(game.updatedAt)}</p>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 20px;">玩家管理</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="addPlayerSelect">添加玩家：</label>
+                    <select id="addPlayerSelect">
+                        <option value="">选择玩家</option>
+                        <!-- 玩家选项将通过JS动态生成 -->
+                    </select>
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <button class="btn-success" onclick="addPlayerToGame()">添加到牌局</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>玩家ID</th>
+                            <th>昵称</th>
+                            <th>等级</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gamePlayersList">
+                        <!-- 牌局玩家列表将在这里动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('modalGameContent').innerHTML = content;
+        
+        // 初始化玩家下拉框和列表
+        updateAddPlayerSelect(gameId);
+        updateGamePlayersList(gameId);
+        
+        openModal('gameModal');
+    }
+</script>

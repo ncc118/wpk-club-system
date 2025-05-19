@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WPK计分系统</title>
+    <script>
+        async function loadData() {
+            const res = await fetch('https://raw.githubusercontent.com/你的用户名/wpk-score-system/main/data.json');
+            const data = await res.json();
+            document.getElementById('score-display').innerHTML = 
+                `玩家 ${data.players[0].nickname} 当前积分: ${data.tables[0].scores["001"]}`;
+        }
+        setInterval(loadData, 5000); // 每5秒刷新
+    </script>
+</head>
+<body>
+    <h1>牌桌实时分数</h1>
+    <div id="score-display"></div>
+</body>
+</html>

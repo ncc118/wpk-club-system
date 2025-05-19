@@ -14,528 +14,485 @@
             color: #333;
         }
         h1, h2 {
-            color: #2c3e50;
             text-align: center;
+            color: #2c3e50;
         }
         .container {
             background-color: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            gap: 15px;
         }
         .form-group {
-            margin-bottom: 15px;
+            flex: 1;
+            min-width: 200px;
         }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #34495e;
         }
         input, select {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
+            font-size: 14px;
         }
         button {
             background-color: #3498db;
             color: white;
-            padding: 10px 15px;
+            padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            margin-right: 10px;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #2980b9;
         }
-        button.danger {
+        .btn-danger {
             background-color: #e74c3c;
         }
-        button.danger:hover {
+        .btn-danger:hover {
             background-color: #c0392b;
         }
-        button.success {
+        .btn-success {
             background-color: #2ecc71;
         }
-        button.success:hover {
+        .btn-success:hover {
             background-color: #27ae60;
         }
-        .flex-container {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
+        .game-list {
+            margin-top: 30px;
         }
-        .flex-item {
-            flex: 1;
-        }
-        table {
+        .game-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
+        .game-table th, .game-table td {
+            padding: 12px 15px;
             text-align: left;
+            border-bottom: 1px solid #ddd;
         }
-        th {
+        .game-table th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        .game-table tr:nth-child(even) {
             background-color: #f2f2f2;
         }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
+        .game-table tr:hover {
+            background-color: #e6f7ff;
         }
-        .player-score {
+        .actions {
             display: flex;
-            align-items: center;
-            margin-bottom: 10px;
+            gap: 5px;
         }
-        .player-score select, .player-score input {
-            margin-right: 10px;
-            flex: 1;
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #eaf7fd;
+            border-radius: 6px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .summary-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .summary-card h3 {
+            margin-top: 0;
+            color: #3498db;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
         }
         .chip {
             display: inline-block;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            padding: 3px 8px;
             background-color: #f1c40f;
-            color: #000;
-            text-align: center;
-            line-height: 30px;
+            color: #34495e;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
             margin-right: 5px;
+        }
+        .status-active {
+            color: #27ae60;
             font-weight: bold;
         }
-        .chip.red {
-            background-color: #e74c3c;
-            color: white;
-        }
-        .chip.blue {
-            background-color: #3498db;
-            color: white;
-        }
-        .chip.green {
-            background-color: #2ecc71;
-            color: white;
-        }
-        .chip.black {
-            background-color: #2c3e50;
-            color: white;
-        }
-        .tab {
-            overflow: hidden;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
-            border-radius: 4px 4px 0 0;
-        }
-        .tab button {
-            background-color: inherit;
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 14px 16px;
-            transition: 0.3s;
-            color: #333;
-        }
-        .tab button:hover {
-            background-color: #ddd;
-        }
-        .tab button.active {
-            background-color: #3498db;
-            color: white;
-        }
-        .tabcontent {
-            display: none;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-top: none;
-            border-radius: 0 0 4px 4px;
-            background-color: white;
-        }
-        .tabcontent.active {
-            display: block;
-        }
-        .summary-card {
-            background-color: #ecf0f1;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 15px;
+        .status-ended {
+            color: #7f8c8d;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>WPK俱乐部牌局管理系统</h1>
-    
-    <div class="tab">
-        <button class="tablinks active" onclick="openTab(event, 'gameSetup')">牌局设置</button>
-        <button class="tablinks" onclick="openTab(event, 'playerManagement')">玩家管理</button>
-        <button class="tablinks" onclick="openTab(event, 'gameHistory')">牌局历史</button>
-    </div>
-    
-    <!-- 牌局设置标签页 -->
-    <div id="gameSetup" class="tabcontent active">
-        <div class="container">
+    <div class="container">
+        <h1>WPK俱乐部牌局管理系统</h1>
+        
+        <div class="form-section">
             <h2>创建新牌局</h2>
-            <div class="flex-container">
-                <div class="flex-item">
+            <form id="gameForm">
+                <input type="hidden" id="editGameId" value="">
+                <div class="form-row">
                     <div class="form-group">
                         <label for="gameName">牌局名称：</label>
-                        <input type="text" id="gameName" placeholder="例如：周三常规局" required>
+                        <input type="text" id="gameName" required placeholder="例如：VIP1号桌">
                     </div>
                     <div class="form-group">
-                        <label for="gameDate">日期：</label>
-                        <input type="date" id="gameDate" required>
-                    </div>
-                </div>
-                <div class="flex-item">
-                    <div class="form-group">
-                        <label for="gameType">牌局类型：</label>
+                        <label for="gameType">游戏类型：</label>
                         <select id="gameType" required>
-                            <option value="">-- 请选择 --</option>
+                            <option value="">请选择</option>
                             <option value="德州扑克">德州扑克</option>
                             <option value="奥马哈">奥马哈</option>
                             <option value="短牌">短牌</option>
                             <option value="其他">其他</option>
                         </select>
                     </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="stakes">盲注级别：</label>
+                        <input type="text" id="stakes" required placeholder="例如：10/20">
+                    </div>
                     <div class="form-group">
                         <label for="buyIn">买入金额：</label>
-                        <input type="number" id="buyIn" min="0" value="100" required>
+                        <input type="number" id="buyIn" required placeholder="最小买入金额">
                     </div>
                 </div>
-            </div>
-            
-            <h3>玩家积分</h3>
-            <div id="playerScores">
-                <!-- 玩家积分输入框将在这里动态添加 -->
-            </div>
-            <button type="button" onclick="addPlayerScore()">添加玩家</button>
-            
-            <div style="margin-top: 30px; text-align: center;">
-                <button type="button" class="success" onclick="saveGame()">保存牌局</button>
-                <button type="button" onclick="resetGameForm()">重置</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="maxPlayers">最大玩家数：</label>
+                        <input type="number" id="maxPlayers" min="2" max="10" value="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeBank">思考时间(秒)：</label>
+                        <input type="number" id="timeBank" min="10" value="30" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ante">前注：</label>
+                        <input type="number" id="ante" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="rake">抽水比例(%)：</label>
+                        <input type="number" id="rake" min="0" max="10" step="0.1" value="5">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">牌局密码：</label>
+                        <input type="password" id="password" placeholder="可选">
+                    </div>
+                    <div class="form-group">
+                        <label for="status">牌局状态：</label>
+                        <select id="status">
+                            <option value="active">进行中</option>
+                            <option value="waiting">等待中</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="submit" class="btn-success">保存牌局</button>
+                    <button type="button" onclick="resetGameForm()" style="background-color: #95a5a6;">重置</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="summary">
+            <h2>牌局统计</h2>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h3>活跃牌局</h3>
+                    <p id="activeGames">0</p>
+                </div>
+                <div class="summary-card">
+                    <h3>今日牌局</h3>
+                    <p id="todayGames">0</p>
+                </div>
+                <div class="summary-card">
+                    <h3>总抽水</h3>
+                    <p id="totalRake">0</p>
+                </div>
+                <div class="summary-card">
+                    <h3>活跃玩家</h3>
+                    <p id="activePlayers">0</p>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <!-- 玩家管理标签页 -->
-    <div id="playerManagement" class="tabcontent">
-        <div class="container">
-            <h2>玩家管理</h2>
-            <div class="flex-container">
-                <div class="flex-item">
-                    <h3>添加新玩家</h3>
-                    <div class="form-group">
-                        <label for="newPlayerId">ID：</label>
-                        <input type="text" id="newPlayerId" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="newPlayerName">昵称：</label>
-                        <input type="text" id="newPlayerName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="newPlayerPhone">电话：</label>
-                        <input type="tel" id="newPlayerPhone">
-                    </div>
-                    <button type="button" class="success" onclick="addPlayer()">添加玩家</button>
-                </div>
-                <div class="flex-item">
-                    <h3>玩家列表</h3>
-                    <table id="playersTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>昵称</th>
-                                <th>电话</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- 玩家列表将在这里动态添加 -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 牌局历史标签页 -->
-    <div id="gameHistory" class="tabcontent">
-        <div class="container">
-            <h2>牌局历史记录</h2>
-            <table id="gamesTable">
+        
+        <div class="game-list">
+            <h2>牌局列表</h2>
+            <table class="game-table">
                 <thead>
                     <tr>
-                        <th>日期</th>
+                        <th>牌局ID</th>
                         <th>牌局名称</th>
-                        <th>类型</th>
+                        <th>游戏类型</th>
+                        <th>盲注级别</th>
                         <th>买入</th>
-                        <th>玩家数</th>
+                        <th>玩家</th>
+                        <th>状态</th>
                         <th>操作</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- 牌局历史将在这里动态添加 -->
+                <tbody id="gamesTableBody">
+                    <!-- 牌局数据将在这里动态生成 -->
                 </tbody>
             </table>
         </div>
     </div>
-    
-    <!-- 牌局详情模态框 -->
-    <div id="gameDetailModal" style="display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
-        <div style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 8px;">
-            <span style="float: right; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="closeModal()">&times;</span>
-            <h2 id="modalGameTitle">牌局详情</h2>
-            <div id="modalGameContent">
-                <!-- 牌局详情将在这里动态添加 -->
-            </div>
-        </div>
-    </div>
 
     <script>
-        // 存储玩家和牌局数据
-        let players = [];
+        // 存储牌局数据的数组
         let games = [];
-        let selectedGameIndex = -1;
         
         // DOM加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
             // 加载本地存储的数据
-            loadData();
+            loadGames();
             
-            // 设置默认日期为今天
-            document.getElementById('gameDate').valueAsDate = new Date();
+            // 表单提交事件
+            document.getElementById('gameForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveGame();
+            });
             
-            // 初始化添加一个玩家积分输入框
-            addPlayerScore();
+            // 更新统计信息
+            updateSummary();
         });
         
-        // 加载数据
-        function loadData() {
-            const savedPlayers = localStorage.getItem('wpkPlayers');
+        // 加载牌局数据
+        function loadGames() {
             const savedGames = localStorage.getItem('wpkGames');
-            
-            if (savedPlayers) {
-                players = JSON.parse(savedPlayers);
-                renderPlayersTable();
-            }
-            
             if (savedGames) {
                 games = JSON.parse(savedGames);
                 renderGamesTable();
             }
         }
         
-        // 保存数据
-        function saveData() {
-            localStorage.setItem('wpkPlayers', JSON.stringify(players));
-            localStorage.setItem('wpkGames', JSON.stringify(games));
-        }
-        
-        // 切换标签页
-        function openTab(evt, tabName) {
-            const tabcontents = document.getElementsByClassName("tabcontent");
-            for (let i = 0; i < tabcontents.length; i++) {
-                tabcontents[i].classList.remove("active");
-            }
-            
-            const tablinks = document.getElementsByClassName("tablinks");
-            for (let i = 0; i < tablinks.length; i++) {
-                tablinks[i].classList.remove("active");
-            }
-            
-            document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.classList.add("active");
-        }
-        
-        // 添加玩家积分输入框
-        function addPlayerScore() {
-            const container = document.getElementById('playerScores');
-            const div = document.createElement('div');
-            div.className = 'player-score';
-            div.innerHTML = `
-                <select class="player-select" required>
-                    <option value="">-- 选择玩家 --</option>
-                    ${players.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('')}
-                </select>
-                <input type="number" class="score-input" placeholder="积分" required>
-                <span class="chip" title="100">1</span>
-                <span class="chip red" title="500">5</span>
-                <span class="chip blue" title="1000">10</span>
-                <span class="chip green" title="5000">50</span>
-                <span class="chip black" title="10000">100</span>
-                <button type="button" class="danger" onclick="removePlayerScore(this)">删除</button>
-            `;
-            container.appendChild(div);
-            
-            // 为筹码添加点击事件
-            const chips = div.querySelectorAll('.chip');
-            chips.forEach(chip => {
-                chip.addEventListener('click', function() {
-                    const value = parseInt(this.getAttribute('title'));
-                    const input = div.querySelector('.score-input');
-                    input.value = (parseInt(input.value) || 0) + value;
-                });
-            });
-        }
-        
-        // 移除玩家积分输入框
-        function removePlayerScore(button) {
-            if (document.querySelectorAll('.player-score').length > 1) {
-                button.parentElement.remove();
-            } else {
-                alert('至少需要保留一个玩家！');
-            }
-        }
-        
-        // 添加新玩家
-        function addPlayer() {
-            const id = document.getElementById('newPlayerId').value;
-            const name = document.getElementById('newPlayerName').value;
-            const phone = document.getElementById('newPlayerPhone').value;
-            
-            if (!id || !name) {
-                alert('ID和昵称不能为空！');
-                return;
-            }
-            
-            if (players.some(p => p.id === id)) {
-                alert('该ID已存在！');
-                return;
-            }
-            
-            players.push({
-                id: id,
-                name: name,
-                phone: phone
-            });
-            
-            saveData();
-            renderPlayersTable();
-            updatePlayerSelects();
-            
-            // 清空表单
-            document.getElementById('newPlayerId').value = '';
-            document.getElementById('newPlayerName').value = '';
-            document.getElementById('newPlayerPhone').value = '';
-        }
-        
-        // 删除玩家
-        function deletePlayer(id) {
-            if (confirm('确定要删除这个玩家吗？')) {
-                players = players.filter(p => p.id !== id);
-                saveData();
-                renderPlayersTable();
-                updatePlayerSelects();
-            }
-        }
-        
-        // 渲染玩家表格
-        function renderPlayersTable() {
-            const tbody = document.querySelector('#playersTable tbody');
-            tbody.innerHTML = '';
-            
-            if (players.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">暂无玩家数据</td></tr>';
-                return;
-            }
-            
-            players.forEach(player => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${player.id}</td>
-                    <td>${player.name}</td>
-                    <td>${player.phone || '-'}</td>
-                    <td>
-                        <button type="button" class="danger" onclick="deletePlayer('${player.id}')">删除</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-        
-        // 更新玩家选择下拉框
-        function updatePlayerSelects() {
-            const selects = document.querySelectorAll('.player-select');
-            selects.forEach(select => {
-                const currentValue = select.value;
-                select.innerHTML = `
-                    <option value="">-- 选择玩家 --</option>
-                    ${players.map(p => `<option value="${p.id}" ${p.id === currentValue ? 'selected' : ''}>${p.name} (${p.id})</option>`).join('')}
-                `;
-            });
-        }
-        
-        // 保存牌局
+        // 保存牌局数据
         function saveGame() {
-            const gameName = document.getElementById('gameName').value;
-            const gameDate = document.getElementById('gameDate').value;
-            const gameType = document.getElementById('gameType').value;
-            const buyIn = parseInt(document.getElementById('buyIn').value);
-            
-            if (!gameName || !gameDate || !gameType) {
-                alert('请填写完整的牌局信息！');
-                return;
-            }
-            
-            const playerScores = [];
-            const scoreDivs = document.querySelectorAll('.player-score');
-            
-            scoreDivs.forEach(div => {
-                const playerId = div.querySelector('.player-select').value;
-                const score = parseInt(div.querySelector('.score-input').value) || 0;
-                
-                if (!playerId) {
-                    alert('请为所有玩家选择玩家ID！');
-                    return;
-                }
-                
-                const player = players.find(p => p.id === playerId);
-                playerScores.push({
-                    id: playerId,
-                    name: player.name,
-                    score: score
-                });
-            });
-            
-            if (playerScores.length === 0) {
-                alert('至少需要一个玩家！');
-                return;
-            }
-            
+            const editGameId = document.getElementById('editGameId').value;
             const game = {
-                name: gameName,
-                date: gameDate,
-                type: gameType,
-                buyIn: buyIn,
-                players: playerScores,
-                createdAt: new Date().toISOString()
+                id: editGameId || 'game_' + Date.now(),
+                name: document.getElementById('gameName').value,
+                type: document.getElementById('gameType').value,
+                stakes: document.getElementById('stakes').value,
+                buyIn: parseInt(document.getElementById('buyIn').value),
+                maxPlayers: parseInt(document.getElementById('maxPlayers').value),
+                timeBank: parseInt(document.getElementById('timeBank').value),
+                ante: parseInt(document.getElementById('ante').value) || 0,
+                rake: parseFloat(document.getElementById('rake').value) || 0,
+                password: document.getElementById('password').value,
+                status: document.getElementById('status').value,
+                players: editGameId ? games.find(g => g.id === editGameId)?.players || [] : [],
+                createdAt: editGameId ? games.find(g => g.id === editGameId)?.createdAt || new Date().toISOString() : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
             
-            if (selectedGameIndex >= 0) {
+            if (editGameId) {
                 // 更新现有牌局
-                games[selectedGameIndex] = game;
+                const index = games.findIndex(g => g.id === editGameId);
+                if (index !== -1) {
+                    games[index] = game;
+                }
             } else {
                 // 添加新牌局
                 games.push(game);
             }
             
-            saveData();
-            renderGamesTable();
-            resetGameForm();
+            // 保存到本地存储
+            localStorage.setItem('wpkGames', JSON.stringify(games));
             
-            // 切换到牌局历史标签页
-            document.querySelector('.tablinks[onclick*="gameHistory"]').click();
+            // 重新渲染表格
+            renderGamesTable();
+            
+            // 更新统计信息
+            updateSummary();
+            
+            // 重置表单
+            resetGameForm();
         }
         
         // 渲染牌局表格
         function renderGamesTable() {
-            const tbody = document.querySelector('#gamesTable tbody');
+            const tbody = document.getElementById('gamesTableBody');
             tbody.innerHTML = '';
             
             if (games.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">暂无牌局数据</td></tr>';
+                return;
+            }
+            
+            // 按创建时间倒序排列
+            const sortedGames = [...games].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            sortedGames.forEach(game => {
+                const row = document.createElement('tr');
+                
+                // 玩家数量显示
+                const playerCount = game.players ? game.players.length : 0;
+                const playerDisplay = `${playerCount}/${game.maxPlayers}`;
+                
+                // 状态显示
+                const statusClass = game.status === 'active' ? 'status-active' : 'status-ended';
+                const statusText = game.status === 'active' ? '进行中' : '已结束';
+                
+                row.innerHTML = `
+                    <td>${game.id.substring(0, 8)}...</td>
+                    <td>${game.name}</td>
+                    <td>${game.type}</td>
+                    <td>${game.stakes}</td>
+                    <td>${game.buyIn}</td>
+                    <td>${playerDisplay}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                    <td class="actions">
+                        <button onclick="editGame('${game.id}')">编辑</button>
+                        <button onclick="managePlayers('${game.id}')" class="btn-success">玩家</button>
+                        <button onclick="deleteGame('${game.id}')" class="btn-danger">删除</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 编辑牌局
+        function editGame(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+            
+            document.getElementById('editGameId').value = game.id;
+            document.getElementById('gameName').value = game.name;
+            document.getElementById('gameType').value = game.type;
+            document.getElementById('stakes').value = game.stakes;
+            document.getElementById('buyIn').value = game.buyIn;
+            document.getElementById('maxPlayers').value = game.maxPlayers;
+            document.getElementById('timeBank').value = game.timeBank;
+            document.getElementById('ante').value = game.ante;
+            document.getElementById('rake').value = game.rake;
+            document.getElementById('password').value = game.password || '';
+            document.getElementById('status').value = game.status;
+            
+            // 滚动到表单
+            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 管理玩家
+        function managePlayers(gameId) {
+            alert(`管理牌局 ${gameId} 的玩家功能将在后续版本实现`);
+            // 这里可以添加打开玩家管理模态框的代码
+        }
+        
+        // 删除牌局
+        function deleteGame(gameId) {
+            if (confirm('确定要删除这个牌局吗？此操作不可撤销！')) {
+                games = games.filter(g => g.id !== gameId);
+                localStorage.setItem('wpkGames', JSON.stringify(games));
+                renderGamesTable();
+                updateSummary();
+            }
+        }
+        
+        // 重置表单
+        function resetGameForm() {
+            document.getElementById('editGameId').value = '';
+            document.getElementById('gameForm').reset();
+            document.getElementById('status').value = 'active';
+        }
+        
+        // 更新统计信息
+        function updateSummary() {
+            const today = new Date().toISOString().split('T')[0];
+            const activeGames = games.filter(g => g.status === 'active').length;
+            const todayGames = games.filter(g => g.createdAt.startsWith(today)).length;
+            
+            // 计算总抽水（示例逻辑，实际应根据牌局结果计算）
+            const totalRake = games.reduce((sum, game) => sum + (game.rake || 0), 0);
+            
+            // 计算活跃玩家（去重后的玩家数）
+            const allPlayers = games.flatMap(g => g.players || []);
+            const uniquePlayers = [...new Set(allPlayers)];
+            
+            document.getElementById('activeGames').textContent = activeGames;
+            document.getElementById('todayGames').textContent = todayGames;
+            document.getElementById('totalRake').textContent = totalRake.toFixed(2);
+            document.getElementById('activePlayers').textContent = uniquePlayers.length;
+        }
+        
+        // 示例数据初始化（首次使用时）
+        function initializeSampleData() {
+            if (games.length === 0 && confirm('是否初始化示例数据？')) {
+                const sampleGames = [
+                    {
+                        id: 'game_' + Date.now(),
+                        name: 'VIP1号桌',
+                        type: '德州扑克',
+                        stakes: '10/20',
+                        buyIn: 2000,
+                        maxPlayers: 6,
+                        timeBank: 30,
+                        ante: 0,
+                        rake: 5,
+                        password: '',
+                        status: 'active',
+                        players: ['player1', 'player2', 'player3'],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    },
+                    {
+                        id: 'game_' + (Date.now() + 1),
+                        name: '高额奥马哈',
+                        type: '奥马哈',
+                        stakes: '50/100',
+                        buyIn: 10000,
+                        maxPlayers: 8,
+                        timeBank: 45,
+                        ante: 10,
+                        rake: 5,
+                        password: 'highstakes',
+                        status: 'active',
+                        players: ['player4', 'player5'],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    }
+                ];
+                
+                games = sampleGames;
+                localStorage.setItem('wpkGames', JSON.stringify(games));
+                renderGamesTable();
+                updateSummary();
+            }
+        }
+        
+        // 页面加载后可以调用初始化示例数据
+        // initializeSampleData();
+    </script>
+</body>
+</html>

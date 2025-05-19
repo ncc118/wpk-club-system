@@ -5,6 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WPK俱乐部综合管理系统</title>
     <style>
+        .real-time-games {
+    margin-top: 30px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.real-time-game-active {
+    background-color: #e8f5e9 !important;
+}
+
+.real-time-game-warning {
+    background-color: #fff8e1 !important;
+}
+
+.pot-size {
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.current-player {
+    font-weight: bold;
+    color: #3498db;
+}
+
+.status-waiting {
+    color: #f39c12;
+    font-weight: bold;
+}
         :root {
             --primary-color: #3498db;
             --secondary-color: #2ecc71;
@@ -636,6 +666,176 @@
     </div>
 
     <script>
+        // 模拟实时牌局数据
+let simulatedGames = [
+    {
+        id: 'game_' + Date.now(),
+        name: 'VIP1号桌',
+        type: '德州扑克',
+        stakes: '10/20',
+        current_player: '玩家A',
+        pot: '2,500',
+        players: 6,
+        status: 'active',
+        updatedAt: new Date().toISOString()
+    },
+    {
+        id: 'game_' + (Date.now() + 1),
+        name: '高额奥马哈',
+        type: '奥马哈',
+        stakes: '50/100',
+        current_player: '玩家B',
+        pot: '12,800',
+        players: 8,
+        status: 'active',
+        updatedAt: new Date().toISOString()
+    },
+    {
+        id: 'game_' + (Date.now() + 2),
+        name: '新手桌',
+        type: '德州扑克',
+        stakes: '5/10',
+        current_player: '-',
+        pot: '0',
+        players: 2,
+        status: 'waiting',
+        updatedAt: new Date().toISOString()
+    }
+];
+
+// 更新实时牌局表格
+function updateRealTimeGamesTable(games) {
+    const tbody = document.getElementById('realTimeGamesTable');
+    tbody.innerHTML = '';
+    
+    if (!games || games.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">暂无实时牌局数据</td></tr>';
+        return;
+    }
+    
+    games.forEach(game => {
+        const row = document.createElement('tr');
+        if (game.status === 'active') {
+            row.classList.add('real-time-game-active');
+        } else if (game.status === 'waiting') {
+            row.classList.add('real-time-game-warning');
+        }
+        
+        row.innerHTML = `
+            <td>${game.id.substring(0, 8)}...</td>
+            <td>${game.name}</td>
+            <td>${game.type}</td>
+            <td>${game.stakes}</td>
+            <td class="current-player">${game.current_player || '-'}</td>
+            <td class="pot-size">${game.pot || '0'}</td>
+            <td>${game.players}/${game.maxPlayers || 8}</td>
+            <td>${getGameStatusText(game.status)}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// 获取牌局状态文本
+function getGameStatusText(status) {
+    switch(status) {
+        case 'active': return '<span class="status-active">进行中</span>';
+        case 'waiting': return '<span class="status-waiting">等待中</span>';
+        case 'ended': return '<span class="status-ended">已结束</span>';
+        default: return status;
+    }
+}
+
+// 模拟数据更新函数
+function simulateDataUpdate() {
+    // 随机更新一些数据
+    simulatedGames.forEach(game => {
+        if (game.status === 'active') {
+            // 随机更新底池金额
+            const potIncrease = Math.floor(Math.random() * 1000);
+            game.pot = (parseInt(game.pot.replace(/,/g, '')) + potIncrease).toLocaleString();
+            
+            // 随机切换当前玩家
+            const players = ['玩家A', '玩家B', '玩家C', '玩家D', '玩家E'];
+            game.current_player = players[Math.floor(Math.random() * players.length)];
+            
+            // 小概率结束牌局
+            if (Math.random() < 0.05) {
+                game.status = 'ended';
+            }
+        } else if (game.status === 'waiting') {
+            // 等待中的牌局有小概率开始
+            if (Math.random() < 0.1 && game.players >= 2) {
+                game.status = 'active';
+                game.pot = '500'; // 初始底池
+            }
+        } else if (game.status === 'ended') {
+            // 已结束的牌局有小概率重新开始
+            if (Math.random() < 0.1) {
+                game.status = 'waiting';
+                game.players = 2;
+                game.pot = '0';
+                game.current_player = '-';
+            }
+        }
+        
+        // 随机增减玩家数量
+        if (game.status !== 'ended') {
+            const playerChange = Math.random() < 0.5 ? 1 : -1;
+            const newPlayerCount = game.players + playerChange;
+            if (newPlayerCount >= 2 && newPlayerCount <= (game.maxPlayers || 8)) {
+                game.players = newPlayerCount;
+            }
+        }
+        
+        game.updatedAt = new Date().toISOString();
+    });
+    
+    // 小概率添加新牌局
+    if (Math.random() < 0.1 && simulatedGames.length < 5) {
+        const stakesOptions = ['5/10', '10/20', '25/50', '50/100'];
+        const types = ['德州扑克', '奥马哈', '短牌'];
+        simulatedGames.push({
+            id: 'game_' + Date.now(),
+            name: '新牌局-' + Math.floor(Math.random() * 100),
+            type: types[Math.floor(Math.random() * types.length)],
+            stakes: stakesOptions[Math.floor(Math.random() * stakesOptions.length)],
+            current_player: '-',
+            pot: '0',
+            players: 2,
+            status: 'waiting',
+            updatedAt: new Date().toISOString()
+        });
+    }
+    
+    // 小概率移除牌局
+    if (Math.random() < 0.05 && simulatedGames.length > 3) {
+        const endedGames = simulatedGames.filter(g => g.status === 'ended');
+        if (endedGames.length > 0) {
+            const index = simulatedGames.indexOf(endedGames[0]);
+            simulatedGames.splice(index, 1);
+        }
+    }
+    
+    // 更新表格
+    updateRealTimeGamesTable(simulatedGames);
+}
+
+// 初始化实时数据更新
+function initRealTimeUpdates() {
+    // 立即更新一次
+    updateRealTimeGamesTable(simulatedGames);
+    
+    // 设置定时刷新模拟数据
+    setInterval(simulateDataUpdate, 3000); // 每3秒更新一次
+}
+
+// 在DOM加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // ...其他初始化代码...
+    
+    // 初始化实时更新
+    initRealTimeUpdates();
+});
         // 存储玩家和牌局数据的数组
         let players = [];
         let games = [];

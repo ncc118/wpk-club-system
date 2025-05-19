@@ -527,3 +527,774 @@
                     <div class="form-group">
                         <label for="reportDateRange">日期范围：</label>
                         <select id="reportDateRange">
+                            <option value="today">今日</option>
+                            <option value="week">本周</option>
+                            <option value="month">本月</option>
+                            <option value="all">全部</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reportType">报表类型：</label>
+                        <select id="reportType">
+                            <option value="financial">财务统计</option>
+                            <option value="player">玩家统计</option>
+                            <option value="game">牌局统计</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="align-self: flex-end;">
+                        <button class="btn-primary" onclick="generateReport()">生成报表</button>
+                    </div>
+                </div>
+                
+                <div id="reportResults" class="summary">
+                    <h3>财务统计</h3>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <h3>总充值</h3>
+                            <p id="reportTotalRecharge">0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>总提现</h3>
+                            <p id="reportTotalWithdraw">0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>总抽水</h3>
+                            <p id="reportTotalRake">0</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>净收入</h3>
+                            <p id="reportNetIncome">0</p>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 30px;">活跃玩家排行</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>玩家ID</th>
+                                    <th>昵称</th>
+                                    <th>参与牌局</th>
+                                    <th>总充值</th>
+                                    <th>总盈利</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topPlayersTable">
+                                <!-- 玩家排行数据将在这里动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 玩家详情模态框 -->
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('playerModal')">&times;</span>
+            <h2 id="modalPlayerTitle">玩家详情</h2>
+            <div id="modalPlayerContent">
+                <!-- 玩家详情内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 牌局详情模态框 -->
+    <div id="gameModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('gameModal')">&times;</span>
+            <h2 id="modalGameTitle">牌局详情</h2>
+            <div id="modalGameContent">
+                <!-- 牌局详情内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 存储玩家和牌局数据的数组
+        let players = [];
+        let games = [];
+        
+        // DOM加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载本地存储的数据
+            loadData();
+            
+            // 表单提交事件
+            document.getElementById('playerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                savePlayer();
+            });
+            
+            document.getElementById('gameForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveGame();
+            });
+            
+            // 初始化仪表盘
+            updateDashboard();
+        });
+        
+        // 切换标签页
+        function switchTab(tabId) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有标签的活动状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabId).classList.add('active');
+            
+            // 设置选中标签的活动状态
+            event.currentTarget.classList.add('active');
+            
+            // 如果切换到仪表盘，更新数据
+            if (tabId === 'dashboard') {
+                updateDashboard();
+            }
+        }
+        
+        // 加载数据
+        function loadData() {
+            const savedPlayers = localStorage.getItem('wpkPlayers');
+            const savedGames = localStorage.getItem('wpkGames');
+            
+            if (savedPlayers) {
+                players = JSON.parse(savedPlayers);
+                renderPlayersTable();
+            }
+            
+            if (savedGames) {
+                games = JSON.parse(savedGames);
+                renderGamesTable();
+            }
+        }
+        
+        // 保存数据
+        function saveData() {
+            localStorage.setItem('wpkPlayers', JSON.stringify(players));
+            localStorage.setItem('wpkGames', JSON.stringify(games));
+        }
+        
+        // ========== 玩家管理功能 ==========
+        // 保存玩家
+        function savePlayer() {
+            const editIndex = parseInt(document.getElementById('playerEditIndex').value);
+            const player = {
+                id: document.getElementById('playerId').value,
+                nickname: document.getElementById('playerNickname').value,
+                recharge: parseFloat(document.getElementById('playerRecharge').value),
+                frozen: parseFloat(document.getElementById('playerFrozen').value),
+                level: document.getElementById('playerLevel').value,
+                status: document.getElementById('playerStatus').value,
+                createdAt: editIndex >= 0 ? players[editIndex].createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            if (editIndex >= 0) {
+                // 更新现有玩家
+                players[editIndex] = player;
+            } else {
+                // 添加新玩家
+                players.push(player);
+            }
+            
+            // 保存数据
+            saveData();
+            
+            // 重新渲染表格
+            renderPlayersTable();
+            
+            // 更新仪表盘
+            updateDashboard();
+            
+            // 重置表单
+            resetPlayerForm();
+        }
+        
+        // 渲染玩家表格
+        function renderPlayersTable() {
+            const tbody = document.getElementById('playersTable');
+            tbody.innerHTML = '';
+            
+            if (players.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">暂无玩家数据</td></tr>';
+                return;
+            }
+            
+            players.forEach((player, index) => {
+                const remaining = player.recharge - player.frozen;
+                const remainingClass = remaining >= 0 ? 'positive' : 'negative';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${player.id}</td>
+                    <td>${player.nickname}</td>
+                    <td><span class="chip">${player.level}</span></td>
+                    <td>${player.recharge.toFixed(2)}</td>
+                    <td>${player.frozen.toFixed(2)}</td>
+                    <td class="${remainingClass}">${remaining.toFixed(2)}</td>
+                    <td>${getStatusText(player.status)}</td>
+                    <td class="actions">
+                        <button class="btn-primary btn-sm" onclick="editPlayer(${index})">编辑</button>
+                        <button class="btn-warning btn-sm" onclick="viewPlayerDetails(${index})">详情</button>
+                        <button class="btn-danger btn-sm" onclick="deletePlayer(${index})">删除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 编辑玩家
+        function editPlayer(index) {
+            const player = players[index];
+            document.getElementById('playerEditIndex').value = index;
+            document.getElementById('playerId').value = player.id;
+            document.getElementById('playerNickname').value = player.nickname;
+            document.getElementById('playerRecharge').value = player.recharge;
+            document.getElementById('playerFrozen').value = player.frozen;
+            document.getElementById('playerLevel').value = player.level;
+            document.getElementById('playerStatus').value = player.status;
+            
+            // 切换到玩家管理标签
+            switchTab('players');
+        }
+        
+        // 查看玩家详情
+        function viewPlayerDetails(index) {
+            const player = players[index];
+            const remaining = player.recharge - player.frozen;
+            
+            document.getElementById('modalPlayerTitle').textContent = `玩家详情 - ${player.nickname}`;
+            
+            let content = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3>${player.nickname} (ID: ${player.id})</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>玩家等级：</strong> <span class="chip">${player.level}</span></p>
+                        <p><strong>玩家状态：</strong> ${getStatusText(player.status)}</p>
+                        <p><strong>充值总额：</strong> ${player.recharge.toFixed(2)}</p>
+                        <p><strong>冻结积分：</strong> ${player.frozen.toFixed(2)}</p>
+                        <p><strong>剩余积分：</strong> <span class="${remaining >= 0 ? 'positive' : 'negative'}">${remaining.toFixed(2)}</span></p>
+                        <p><strong>创建时间：</strong> ${formatDate(player.createdAt)}</p>
+                        <p><strong>最后更新：</strong> ${formatDate(player.updatedAt)}</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 20px;">参与牌局记录</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>牌局ID</th>
+                                <th>牌局名称</th>
+                                <th>游戏类型</th>
+                                <th>结果</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playerGameHistory">
+                            <!-- 玩家参与的牌局记录将在这里动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('modalPlayerContent').innerHTML = content;
+            
+            // 显示玩家参与的牌局记录（示例数据，实际应从游戏数据中获取）
+            const tbody = document.getElementById('playerGameHistory');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">暂无牌局记录</td></tr>';
+            
+            openModal('playerModal');
+        }
+        
+        // 删除玩家
+        function deletePlayer(index) {
+            if (confirm('确定要删除这个玩家吗？此操作不可撤销！')) {
+                players.splice(index, 1);
+                saveData();
+                renderPlayersTable();
+                updateDashboard();
+            }
+        }
+        
+        // 重置玩家表单
+        function resetPlayerForm() {
+            document.getElementById('playerEditIndex').value = '-1';
+            document.getElementById('playerForm').reset();
+            document.getElementById('playerLevel').value = '普通';
+            document.getElementById('playerStatus').value = 'active';
+        }
+        
+        // ========== 牌局管理功能 ==========
+        // 保存牌局
+        function saveGame() {
+            const editGameId = document.getElementById('gameEditId').value;
+            const game = {
+                id: editGameId || 'game_' + Date.now(),
+                name: document.getElementById('gameName').value,
+                type: document.getElementById('gameType').value,
+                stakes: document.getElementById('gameStakes').value,
+                buyIn: parseInt(document.getElementById('gameBuyIn').value),
+                maxPlayers: parseInt(document.getElementById('gameMaxPlayers').value),
+                timeBank: parseInt(document.getElementById('gameTimeBank').value),
+                ante: parseInt(document.getElementById('gameAnte').value) || 0,
+                rake: parseFloat(document.getElementById('gameRake').value) || 0,
+                password: document.getElementById('gamePassword').value,
+                status: document.getElementById('gameStatus').value,
+                players: editGameId ? games.find(g => g.id === editGameId)?.players || [] : [],
+                createdAt: editGameId ? games.find(g => g.id === editGameId)?.createdAt || new Date().toISOString() : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            if (editGameId) {
+                // 更新现有牌局
+                const index = games.findIndex(g => g.id === editGameId);
+                if (index !== -1) {
+                    games[index] = game;
+                }
+            } else {
+                // 添加新牌局
+                games.push(game);
+            }
+            
+            // 保存数据
+            saveData();
+            
+            // 重新渲染表格
+            renderGamesTable();
+            
+            // 更新仪表盘
+            updateDashboard();
+            
+            // 重置表单
+            resetGameForm();
+        }
+        
+        // 渲染牌局表格
+        function renderGamesTable() {
+            const tbody = document.getElementById('gamesTable');
+            tbody.innerHTML = '';
+            
+            if (games.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">暂无牌局数据</td></tr>';
+                return;
+            }
+            
+            // 按创建时间倒序排列
+            const sortedGames = [...games].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            sortedGames.forEach(game => {
+                const playerCount = game.players ? game.players.length : 0;
+                const playerDisplay = `${playerCount}/${game.maxPlayers}`;
+                const statusClass = game.status === 'active' ? 'status-active' : 
+                                  game.status === 'ended' ? 'status-ended' : '';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${game.id.substring(0, 8)}...</td>
+                    <td>${game.name}</td>
+                    <td>${game.type}</td>
+                    <td>${game.stakes}</td>
+                    <td>${game.buyIn}</td>
+                    <td>${playerDisplay}</td>
+                    <td class="${statusClass}">${getGameStatusText(game.status)}</td>
+                    <td class="actions">
+                        <button class="btn-primary btn-sm" onclick="editGame('${game.id}')">编辑</button>
+                        <button class="btn-success btn-sm" onclick="viewGameDetails('${game.id}')">详情</button>
+                        <button class="btn-danger btn-sm" onclick="deleteGame('${game.id}')">删除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 编辑牌局
+        function editGame(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+            
+            document.getElementById('gameEditId').value = game.id;
+            document.getElementById('gameName').value = game.name;
+            document.getElementById('gameType').value = game.type;
+            document.getElementById('gameStakes').value = game.stakes;
+            document.getElementById('gameBuyIn').value = game.buyIn;
+            document.getElementById('gameMaxPlayers').value = game.maxPlayers;
+            document.getElementById('gameTimeBank').value = game.timeBank;
+            document.getElementById('gameAnte').value = game.ante;
+            document.getElementById('gameRake').value = game.rake;
+            document.getElementById('gamePassword').value = game.password || '';
+            document.getElementById('gameStatus').value = game.status;
+            
+            // 切换到牌局管理标签
+            switchTab('games');
+        }
+        
+        // 查看牌局详情
+        function viewGameDetails(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+            
+            document.getElementById('modalGameTitle').textContent = `牌局详情 - ${game.name}`;
+            
+            let content = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3>${game.name} (ID: ${game.id})</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>游戏类型：</strong> ${game.type}</p>
+                        <p><strong>盲注级别：</strong> ${game.stakes}</p>
+                        <p><strong>买入金额：</strong> ${game.buyIn}</p>
+                        <p><strong>最大玩家数：</strong> ${game.maxPlayers}</p>
+                        <p><strong>思考时间：</strong> ${game.timeBank}秒</p>
+                        <p><strong>前注：</strong> ${game.ante}</p>
+                        <p><strong>抽水比例：</strong> ${game.rake}%</p>
+                        <p><strong>牌局状态：</strong> ${getGameStatusText(game.status)}</p>
+                        <p><strong>创建时间：</strong> ${formatDate(game.createdAt)}</p>
+                        <p><strong>最后更新：</strong> ${formatDate(game.updatedAt)}</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 20px;">玩家列表</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>玩家ID</th>
+                                <th>昵称</th>
+                                <th>买入</th>
+                                <th>当前筹码</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gamePlayersList">
+                            <!-- 牌局玩家列表将在这里动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('modalGameContent').innerHTML = content;
+            
+            // 显示牌局玩家列表（示例数据，实际应从游戏数据中获取）
+            const tbody = document.getElementById('gamePlayersList');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">暂无玩家数据</td></tr>';
+            
+            openModal('gameModal');
+        }
+        
+        // 删除牌局
+        function deleteGame(gameId) {
+            if (confirm('确定要删除这个牌局吗？此操作不可撤销！')) {
+                games = games.filter(g => g.id !== gameId);
+                saveData();
+                renderGamesTable();
+                updateDashboard();
+            }
+        }
+        
+        // 重置牌局表单
+        function resetGameForm() {
+            document.getElementById('gameEditId').value = '';
+            document.getElementById('gameForm').reset();
+            document.getElementById('gameMaxPlayers').value = 6;
+            document.getElementById('gameTimeBank').value = 30;
+            document.getElementById('gameAnte').value = 0;
+            document.getElementById('gameRake').value = 5;
+            document.getElementById('gameStatus').value = 'active';
+        }
+        
+        // ========== 仪表盘功能 ==========
+        // 更新仪表盘
+        function updateDashboard() {
+            // 玩家统计
+            document.getElementById('totalPlayers').textContent = players.length;
+            
+            // 牌局统计
+            const today = new Date().toISOString().split('T')[0];
+            const activeGames = games.filter(g => g.status === 'active').length;
+            const todayGames = games.filter(g => g.createdAt.startsWith(today)).length;
+            
+            // 计算总充值
+            const totalRecharge = players.reduce((sum, player) => sum + (player.recharge || 0), 0);
+            
+            // 计算总抽水（示例逻辑，实际应根据牌局结果计算）
+            const totalRake = games.reduce((sum, game) => sum + (game.rake || 0), 0);
+            
+            document.getElementById('activeGames').textContent = activeGames;
+            document.getElementById('todayGames').textContent = todayGames;
+            document.getElementById('totalRecharge').textContent = totalRecharge.toFixed(2);
+            document.getElementById('totalRake').textContent = totalRake.toFixed(2);
+            
+            // 更新最近牌局表格
+            updateRecentGamesTable();
+            
+            // 更新活跃玩家卡片
+            updateActivePlayersCards();
+        }
+        
+        // 更新最近牌局表格
+        function updateRecentGamesTable() {
+            const tbody = document.getElementById('recentGamesTable');
+            tbody.innerHTML = '';
+            
+            // 获取最近5个牌局（按创建时间倒序）
+            const recentGames = [...games]
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5);
+            
+            if (recentGames.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">暂无牌局数据</td></tr>';
+                return;
+            }
+            
+            recentGames.forEach(game => {
+                const playerCount = game.players ? game.players.length : 0;
+                const statusClass = game.status === 'active' ? 'status-active' : 
+                                  game.status === 'ended' ? 'status-ended' : '';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${game.name}</td>
+                    <td>${game.type}</td>
+                    <td>${game.stakes}</td>
+                    <td>${playerCount}/${game.maxPlayers}</td>
+                    <td class="${statusClass}">${getGameStatusText(game.status)}</td>
+                    <td class="actions">
+                        <button class="btn-primary btn-sm" onclick="viewGameDetails('${game.id}')">详情</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 更新活跃玩家卡片
+        function updateActivePlayersCards() {
+            const container = document.getElementById('activePlayersList');
+            container.innerHTML = '';
+            
+            // 获取活跃玩家（按充值金额倒序，最多6个）
+            const activePlayers = [...players]
+                .filter(p => p.status === 'active')
+                .sort((a, b) => b.recharge - a.recharge)
+                .slice(0, 6);
+            
+            if (activePlayers.length === 0) {
+                container.innerHTML = '<p>暂无活跃玩家数据</p>';
+                return;
+            }
+            
+            activePlayers.forEach(player => {
+                const remaining = player.recharge - player.frozen;
+                const remainingClass = remaining >= 0 ? 'positive' : 'negative';
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${player.nickname}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>ID：</strong> ${player.id}</p>
+                        <p><strong>等级：</strong> <span class="chip">${player.level}</span></p>
+                        <p><strong>剩余积分：</strong> <span class="${remainingClass}">${remaining.toFixed(2)}</span></p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-primary btn-sm" onclick="viewPlayerDetails(${players.indexOf(player)})">详情</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        // ========== 报表统计功能 ==========
+        // 生成报表
+        function generateReport() {
+            const dateRange = document.getElementById('reportDateRange').value;
+            const reportType = document.getElementById('reportType').value;
+            
+            // 这里应该根据日期范围和报表类型生成相应的报表数据
+            // 以下是示例数据
+            
+            // 财务统计
+            const totalRecharge = players.reduce((sum, player) => sum + (player.recharge || 0), 0);
+            const totalRake = games.reduce((sum, game) => sum + (game.rake || 0), 0);
+            
+            document.getElementById('reportTotalRecharge').textContent = totalRecharge.toFixed(2);
+            document.getElementById('reportTotalWithdraw').textContent = '0.00'; // 示例数据
+            document.getElementById('reportTotalRake').textContent = totalRake.toFixed(2);
+            document.getElementById('reportNetIncome').textContent = (totalRake * 100).toFixed(2); // 示例数据
+            
+            // 活跃玩家排行
+            updateTopPlayersTable();
+        }
+        
+        // 更新玩家排行表格
+        function updateTopPlayersTable() {
+            const tbody = document.getElementById('topPlayersTable');
+            tbody.innerHTML = '';
+            
+            // 获取活跃玩家排行（按充值金额倒序，最多10个）
+            const topPlayers = [...players]
+                .filter(p => p.status === 'active')
+                .sort((a, b) => b.recharge - a.recharge)
+                .slice(0, 10);
+            
+            if (topPlayers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">暂无玩家数据</td></tr>';
+                return;
+            }
+            
+            topPlayers.forEach((player, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${player.id}</td>
+                    <td>${player.nickname}</td>
+                    <td>5</td> <!-- 示例数据 -->
+                    <td>${player.recharge.toFixed(2)}</td>
+                    <td class="${player.recharge > 0 ? 'positive' : 'negative'}">${(player.recharge * 0.1).toFixed(2)}</td> <!-- 示例数据 -->
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // ========== 通用功能 ==========
+        // 打开模态框
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+        
+        // 关闭模态框
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // 获取状态文本
+        function getStatusText(status) {
+            switch(status) {
+                case 'active': return '<span class="status-active">活跃</span>';
+                case 'inactive': return '<span class="status-ended">不活跃</span>';
+                case 'banned': return '<span style="color: #e74c3c; font-weight: bold;">封禁</span>';
+                default: return status;
+            }
+        }
+        
+        // 获取牌局状态文本
+        function getGameStatusText(status) {
+            switch(status) {
+                case 'active': return '进行中';
+                case 'waiting': return '等待中';
+                case 'ended': return '已结束';
+                default: return status;
+            }
+        }
+        
+        // 格式化日期
+        function formatDate(isoString) {
+            if (!isoString) return '未知';
+            const date = new Date(isoString);
+            return date.toLocaleString('zh-CN');
+        }
+        
+        // 初始化示例数据（首次使用时可以取消注释）
+        /*
+        function initializeSampleData() {
+            if (players.length === 0 && games.length === 0 && confirm('是否初始化示例数据？')) {
+                // 示例玩家数据
+                players = [
+                    {
+                        id: 'player001',
+                        nickname: '张三',
+                        recharge: 5000,
+                        frozen: 1000,
+                        level: 'VIP',
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    },
+                    {
+                        id: 'player002',
+                        nickname: '李四',
+                        recharge: 3000,
+                        frozen: 500,
+                        level: '普通',
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    },
+                    {
+                        id: 'player003',
+                        nickname: '王五',
+                        recharge: 10000,
+                        frozen: 2000,
+                        level: 'VVIP',
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    }
+                ];
+                
+                // 示例牌局数据
+                games = [
+                    {
+                        id: 'game_' + Date.now(),
+                        name: 'VIP1号桌',
+                        type: '德州扑克',
+                        stakes: '10/20',
+                        buyIn: 2000,
+                        maxPlayers: 6,
+                        timeBank: 30,
+                        ante: 0,
+                        rake: 5,
+                        password: '',
+                        status: 'active',
+                        players: ['player001', 'player002'],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    },
+                    {
+                        id: 'game_' + (Date.now() + 1),
+                        name: '高额奥马哈',
+                        type: '奥马哈',
+                        stakes: '50/100',
+                        buyIn: 10000,
+                        maxPlayers: 8,
+                        timeBank: 45,
+                        ante: 10,
+                        rake: 5,
+                        password: 'highstakes',
+                        status: 'active',
+                        players: ['player003'],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    }
+                ];
+                
+                // 保存数据
+                saveData();
+                
+                // 重新渲染
+                renderPlayersTable();
+                renderGamesTable();
+                updateDashboard();
+            }
+        }
+        
+        // 页面加载后可以调用初始化示例数据
+        initializeSampleData();
+        */
+    </script>
+</body>
+</html>

@@ -1,19 +1,22 @@
 {
-  "players": [
-    {
-      "id": "001",
-      "nickname": "玩家A",
-      "recharge": 1000,
-      "frozen": 200,
-      "balance": 800,
-      "current_table": "桌1"
+    "players": [
+        {"id": "10001", "name": "冒险家", "score": 0, "available": 2350},
+        {"id": "10002", "name": "魔法师", "score": 0, "available": 1200}
+    ],
+    "playerManager": {
+        "players": {
+            "10001": {
+                "nickname": "冒险家",
+                "deposit": 648.00,
+                "frozen": 150,
+                "available": 2350
+            },
+            "10002": {
+                "nickname": "魔法师",
+                "deposit": 198.50,
+                "frozen": 0,
+                "available": 1200
+            }
+        }
     }
-  ],
-  "tables": [
-    {
-      "id": "桌1",
-      "players": ["001"],
-      "scores": {"001": 50}
-    }
-  ]
 }

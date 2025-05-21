@@ -1634,3 +1634,111 @@
         document.getElementById('searchResults').style.display = 'none';
     }
 </script>
+<!-- 修改仪表盘部分(dashboard tab content) -->
+<div id="dashboard" class="tab-content active">
+    <div class="summary">
+        <h2>系统概览</h2>
+        <div class="form-row">
+            <div class="form-group" style="flex: 3;">
+                <label for="playerSearch">搜索玩家：</label>
+                <input type="text" id="playerSearch" placeholder="输入玩家ID或昵称" oninput="searchPlayers()">
+            </div>
+            <div class="form-group" style="flex: 1; align-self: flex-end;">
+                <button class="btn-primary" onclick="searchPlayers()">搜索</button>
+            </div>
+        </div>
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h3>总玩家</h3>
+                <p id="totalPlayers">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>活跃牌局</h3>
+                <p id="activeGames">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>今日牌局</h3>
+                <p id="todayGames">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>总充值</h3>
+                <p id="totalRecharge">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>总抽水</h3>
+                <p id="totalRake">0</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="searchResults" style="display: none;">
+        <h2>搜索结果</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>昵称</th>
+                        <th>等级</th>
+                        <th>充值</th>
+                        <th>冻结积分</th>
+                        <th>剩余积分</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="searchResultsTable">
+                    <!-- 搜索结果将在这里动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <h2>最近牌局</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>牌局名称</th>
+                    <th>游戏类型</th>
+                    <th>盲注级别</th>
+                    <th>玩家</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="recentGamesTable">
+                <!-- 最近牌局数据将在这里动态生成 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 修改updateDashboard函数，移除更新活跃玩家卡片的代码
+    function updateDashboard() {
+        // 玩家统计
+        document.getElementById('totalPlayers').textContent = players.length;
+        
+        // 牌局统计
+        const today = new Date().toISOString().split('T')[0];
+        const activeGames = games.filter(g => g.status === 'active').length;
+        const todayGames = games.filter(g => g.createdAt.startsWith(today)).length;
+        
+        // 计算总充值
+        const totalRecharge = players.reduce((sum, player) => sum + (player.recharge || 0), 0);
+        
+        // 计算总抽水
+        const totalRake = games.reduce((sum, game) => sum + (game.rake || 0), 0);
+        
+        document.getElementById('activeGames').textContent = activeGames;
+        document.getElementById('todayGames').textContent = todayGames;
+        document.getElementById('totalRecharge').textContent = totalRecharge.toFixed(2);
+        document.getElementById('totalRake').textContent = totalRake.toFixed(2);
+        
+        // 更新最近牌局表格
+        updateRecentGamesTable();
+        
+        // 移除更新活跃玩家卡片的代码
+    }
+</script>

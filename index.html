@@ -1766,3 +1766,190 @@
         openModal('playerModal');
     }
 </script>
+<!-- 在玩家管理部分添加搜索功能 -->
+<div id="players" class="tab-content">
+    <div class="form-section">
+        <h2>添加/编辑玩家</h2>
+        <form id="playerForm">
+            <!-- 原有表单内容保持不变 -->
+        </form>
+    </div>
+    
+    <h2>玩家列表</h2>
+    
+    <!-- 添加搜索和筛选区域 -->
+    <div class="form-row" style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <div class="form-group" style="flex: 2;">
+            <label for="playerSearchInput">搜索玩家：</label>
+            <input type="text" id="playerSearchInput" placeholder="输入ID或昵称" 
+                   oninput="filterPlayers()" style="padding: 8px;">
+        </div>
+        <div class="form-group">
+            <label for="playerLevelFilter">等级：</label>
+            <select id="playerLevelFilter" onchange="filterPlayers()" style="padding: 8px;">
+                <option value="">全部</option>
+                <option value="普通">普通</option>
+                <option value="VIP">VIP</option>
+                <option value="VVIP">VVIP</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="playerStatusFilter">状态：</label>
+            <select id="playerStatusFilter" onchange="filterPlayers()" style="padding: 8px;">
+                <option value="">全部</option>
+                <option value="active">活跃</option>
+                <option value="inactive">不活跃</option>
+                <option value="banned">封禁</option>
+            </select>
+        </div>
+        <div class="form-group" style="align-self: flex-end;">
+            <button type="button" onclick="resetPlayerFilters()" 
+                    style="padding: 8px 15px; background: #95a5a6;">重置筛选</button>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table class="player-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>昵称</th>
+                    <th>等级</th>
+                    <th>充值</th>
+                    <th>冻结积分</th>
+                    <th>剩余积分</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="playersTableBody">
+                <!-- 玩家数据将在这里动态生成 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 玩家筛选函数
+    function filterPlayers() {
+        const searchText = document.getElementById('playerSearchInput').value.toLowerCase();
+        const levelFilter = document.getElementById('playerLevelFilter').value;
+        const statusFilter = document.getElementById('playerStatusFilter').value;
+        
+        const filteredPlayers = players.filter(player => {
+            // 检查搜索文本匹配 (ID或昵称)
+            const matchesSearch = searchText === '' || 
+                player.id.toLowerCase().includes(searchText) || 
+                player.nickname.toLowerCase().includes(searchText);
+            
+            // 检查等级匹配
+            const matchesLevel = levelFilter === '' || player.level === levelFilter;
+            
+            // 检查状态匹配
+            const matchesStatus = statusFilter === '' || player.status === statusFilter;
+            
+            return matchesSearch && matchesLevel && matchesStatus;
+        });
+        
+        renderPlayersTable(filteredPlayers);
+    }
+    
+    // 重置筛选条件
+    function resetPlayerFilters() {
+        document.getElementById('playerSearchInput').value = '';
+        document.getElementById('playerLevelFilter').value = '';
+        document.getElementById('playerStatusFilter').value = '';
+        filterPlayers();
+    }
+    
+    // 修改后的渲染玩家表格函数
+    function renderPlayersTable(playersToShow = players) {
+        const tbody = document.getElementById('playersTableBody');
+        tbody.innerHTML = '';
+        
+        if (playersToShow.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 20px;">
+                        没有找到匹配的玩家
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        playersToShow.forEach(player => {
+            const remaining = player.recharge - player.frozen;
+            const remainingClass = remaining >= 0 ? 'positive' : 'negative';
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${player.id}</td>
+                <td>${player.nickname}</td>
+                <td><span class="chip">${player.level}</span></td>
+                <td>${player.recharge.toFixed(2)}</td>
+                <td>${player.frozen.toFixed(2)}</td>
+                <td class="${remainingClass}">${remaining.toFixed(2)}</td>
+                <td>${getStatusText(player.status)}</td>
+                <td class="actions">
+                    <button class="btn-primary btn-sm" 
+                            onclick="editPlayer('${player.id}')">编辑</button>
+                    <button class="btn-warning btn-sm" 
+                            onclick="viewPlayerDetails('${player.id}')">详情</button>
+                    <button class="btn-danger btn-sm" 
+                            onclick="deletePlayer('${player.id}')">删除</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // 修改editPlayer函数，改为通过ID查找玩家
+    function editPlayer(playerId) {
+        const index = players.findIndex(p => p.id === playerId);
+        if (index === -1) return;
+        
+        const player = players[index];
+        document.getElementById('playerEditIndex').value = index;
+        document.getElementById('playerId').value = player.id;
+        document.getElementById('playerNickname').value = player.nickname;
+        document.getElementById('playerRecharge').value = player.recharge;
+        document.getElementById('playerFrozen').value = player.frozen;
+        document.getElementById('playerLevel').value = player.level;
+        document.getElementById('playerStatus').value = player.status;
+        
+        // 切换到玩家管理标签页
+        switchTab('players');
+        
+        // 滚动到表单位置
+        document.getElementById('playerForm').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // 修改viewPlayerDetails函数，改为通过ID查找玩家
+    function viewPlayerDetails(playerId) {
+        const player = players.find(p => p.id === playerId);
+        if (!player) return;
+        
+        // ... 保持原有的详情模态框代码不变 ...
+    }
+    
+    // 修改deletePlayer函数，改为通过ID查找玩家
+    function deletePlayer(playerId) {
+        if (!confirm('确定要删除这个玩家吗？')) return;
+        
+        const index = players.findIndex(p => p.id === playerId);
+        if (index === -1) return;
+        
+        players.splice(index, 1);
+        saveData();
+        filterPlayers(); // 使用当前筛选条件重新渲染
+        updateDashboard();
+    }
+    
+    // 在页面加载时初始化搜索功能
+    document.addEventListener('DOMContentLoaded', function() {
+        // 确保在加载数据后应用筛选
+        loadData();
+        filterPlayers();
+    });
+</script>

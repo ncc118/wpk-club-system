@@ -1523,4 +1523,266 @@
         openModal('gameModal');
     }
 </script>
+<!-- 在gameModal的modalGameContent中添加搜索功能 -->
+<div id="gameModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('gameModal')">&times;</span>
+        <h2 id="modalGameTitle">牌局详情</h2>
+        <div id="modalGameContent">
+            <!-- 原有牌局详情内容保持不变 -->
+            
+            <h3 style="margin-top: 20px;">玩家管理</h3>
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label for="playerSearch">搜索玩家：</label>
+                    <input type="text" id="playerSearch" placeholder="输入ID或昵称搜索" oninput="searchPlayers()">
+                </div>
+                <div class="form-group">
+                    <label for="playerLevelFilter">等级筛选：</label>
+                    <select id="playerLevelFilter" onchange="searchPlayers()">
+                        <option value="">全部等级</option>
+                        <option value="普通">普通</option>
+                        <option value="VIP">VIP</option>
+                        <option value="VVIP">VVIP</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; display: none;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>昵称</th>
+                            <th>等级</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playerSearchResults">
+                        <!-- 搜索结果将在这里动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>玩家ID</th>
+                            <th>昵称</th>
+                            <th>等级</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gamePlayersList">
+                        <!-- 牌局玩家列表将在这里动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script>
+    // 添加新函数：搜索玩家
+    function searchPlayers() {
+        const searchTerm = document.getElementById('playerSearch').value.toLowerCase();
+        const levelFilter = document.getElementById('playerLevelFilter').value;
+        const gameId = document.querySelector('#modalGameTitle').textContent.match(/ID: (game_\w+)/)?.[1];
+        
+        if (!gameId) return;
+        
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        // 获取尚未加入该牌局的活跃玩家
+        let availablePlayers = players.filter(player => 
+            player.status === 'active' && 
+            !game.players.includes(player.id)
+        );
+        
+        // 应用搜索条件
+        if (searchTerm) {
+            availablePlayers = availablePlayers.filter(player => 
+                player.id.toLowerCase().includes(searchTerm) || 
+                player.nickname.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // 应用等级筛选
+        if (levelFilter) {
+            availablePlayers = availablePlayers.filter(player => 
+                player.level === levelFilter
+            );
+        }
+        
+        const resultsContainer = document.getElementById('searchResults');
+        const tbody = document.getElementById('playerSearchResults');
+        tbody.innerHTML = '';
+        
+        if (availablePlayers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">未找到匹配的玩家</td></tr>';
+            resultsContainer.style.display = 'block';
+            return;
+        }
+        
+        availablePlayers.forEach(player => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${player.id}</td>
+                <td>${player.nickname}</td>
+                <td><span class="chip">${player.level}</span></td>
+                <td>${getStatusText(player.status)}</td>
+                <td class="actions">
+                    <button class="btn-success btn-sm" onclick="addSpecificPlayerToGame('${gameId}', '${player.id}')">添加</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        resultsContainer.style.display = 'block';
+    }
+    
+    // 添加新函数：添加特定玩家到牌局
+    function addSpecificPlayerToGame(gameId, playerId) {
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        // 确保players数组存在
+        game.players = game.players || [];
+        
+        // 检查玩家是否已在牌局中
+        if (!game.players.includes(playerId)) {
+            // 检查是否已达到最大玩家数
+            if (game.players.length >= game.maxPlayers) {
+                alert('该牌局已达到最大玩家数限制');
+                return;
+            }
+            
+            game.players.push(playerId);
+            game.updatedAt = new Date().toISOString();
+            
+            // 保存数据
+            saveData();
+            
+            // 更新UI
+            updateGamePlayersList(gameId);
+            searchPlayers(); // 刷新搜索结果
+            renderGamesTable();
+            updateDashboard();
+            
+            // 不显示alert，改为在界面中显示成功提示
+            showToast('玩家已成功添加到牌局');
+        }
+    }
+    
+    // 添加新函数：显示Toast提示
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.backgroundColor = '#2ecc71';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 20px';
+        toast.style.borderRadius = '4px';
+        toast.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+        toast.style.zIndex = '1000';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.transition = 'opacity 0.5s';
+            toast.style.opacity = '0';
+            setTimeout(() => document.body.removeChild(toast), 500);
+        }, 3000);
+    }
+    
+    // 修改viewGameDetails函数，移除旧的添加玩家方式
+    function viewGameDetails(gameId) {
+        const game = games.find(g => g.id === gameId);
+        if (!game) return;
+        
+        document.getElementById('modalGameTitle').textContent = `牌局详情 - ${game.name} (ID: ${game.id})`;
+        
+        let content = `
+            <div class="card">
+                <div class="card-header">
+                    <h3>${game.name}</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>游戏类型：</strong> ${game.type}</p>
+                    <p><strong>盲注级别：</strong> ${game.stakes}</p>
+                    <p><strong>买入金额：</strong> ${game.buyIn}</p>
+                    <p><strong>玩家数量：</strong> ${game.players?.length || 0}/${game.maxPlayers}</p>
+                    <p><strong>思考时间：</strong> ${game.timeBank}秒</p>
+                    <p><strong>前注：</strong> ${game.ante}</p>
+                    <p><strong>抽水比例：</strong> ${game.rake}%</p>
+                    <p><strong>牌局状态：</strong> ${getGameStatusText(game.status)}</p>
+                    <p><strong>创建时间：</strong> ${formatDate(game.createdAt)}</p>
+                    <p><strong>最后更新：</strong> ${formatDate(game.updatedAt)}</p>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 20px;">玩家管理</h3>
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label for="playerSearch">搜索玩家：</label>
+                    <input type="text" id="playerSearch" placeholder="输入ID或昵称搜索" oninput="searchPlayers()">
+                </div>
+                <div class="form-group">
+                    <label for="playerLevelFilter">等级筛选：</label>
+                    <select id="playerLevelFilter" onchange="searchPlayers()">
+                        <option value="">全部等级</option>
+                        <option value="普通">普通</option>
+                        <option value="VIP">VIP</option>
+                        <option value="VVIP">VVIP</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="searchResults" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; display: none;">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>昵称</th>
+                            <th>等级</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playerSearchResults">
+                        <!-- 搜索结果将在这里动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>玩家ID</th>
+                            <th>昵称</th>
+                            <th>等级</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gamePlayersList">
+                        <!-- 牌局玩家列表将在这里动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('modalGameContent').innerHTML = content;
+        
+        // 初始化玩家列表
+        updateGamePlayersList(gameId);
+        
+        openModal('gameModal');
+    }
+</script>
